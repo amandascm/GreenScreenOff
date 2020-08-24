@@ -13,20 +13,23 @@ function loadFile(event, idCanvas, isBackground) {
   if(isBackground){
     imagebg = new Image();
     imagebg.src = URL.createObjectURL(event.target.files[0]);
-    if(imagefg.src != ""){
-      imagebg.width = imagefg.width;
-      imagebg.height = imagefg.height;
-    }
+    imagebg.onload = function(){
+      if(imagefg.src != ""){
+        imagebg.width = imagefg.width;
+        imagebg.height = imagefg.height;
+      }
+      loadOnCanvas(idCanvas, isBackground);
+    };
   }else{
     imagefg = new Image();
     imagefg.src = URL.createObjectURL(event.target.files[0]);
-    if(imagebg.src != ""){
-      imagefg.width = imagebg.width;
-      imagefg.height = imagebg.height;
-    }
-  }
-  if(imagefg.complete || imagebg.complete){
+    imagefg.onload = function(){
+      if(imagebg.src != ""){
+        imagefg.width = imagebg.width;
+        imagefg.height = imagebg.height;
+      }
       loadOnCanvas(idCanvas, isBackground);
+    };    
   }
 }
 
