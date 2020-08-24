@@ -1,0 +1,32 @@
+canvas {
+  border: 2px solid #c3c3c3;
+  border-color: #99ff66;
+}
+
+span {
+  color: #f2f2f2;
+}
+
+h2 {
+  font-family: opensans-regular-webfont, Arial, sans-serif;
+  font-weight: bold;
+  color: #f2f2f2;
+}
+
+h1 {
+  font-family: opensans-bold-webfont, Arial, sans-serif;
+  font-style: normal;
+  font-weight: bolder;
+  font-size: 45px;
+  color: #99ff66;
+}
+
+.inputFile {
+  font-family: opensans-bold-webfont, Arial, sans-serif;
+  color: #f2f2f2;
+}
+
+body {
+  background-color: #262626;
+  text-align: center;
+}
