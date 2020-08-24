@@ -30,3 +30,9 @@ body {
   background-color: #262626;
   text-align: center;
 }
+
+img {
+  width: 400px;
+  min-width: 2%;
+  max-width: 100%;
+}
