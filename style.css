@@ -1,6 +1,8 @@
 canvas {
   border: 2px solid #c3c3c3;
   border-color: #99ff66;
+  min-width: 2%;
+  max-width: 100%;
 }
 
 span {
