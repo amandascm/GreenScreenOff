@@ -5,8 +5,12 @@ canvas {
   max-width: 100%;
 }
 
-span {
+.span1 {
   color: #f2f2f2;
+}
+
+.span2 {
+  color: #ff5757;
 }
 
 h2 {

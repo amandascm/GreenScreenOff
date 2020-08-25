@@ -7,6 +7,7 @@ var imgfg = "imgfg";
 var imgbg = "imgbg";
 var isBackground = true;
 var isntBackground = false;
+var hasResultImg = false;
 
 //funcao para carregamento do arquivo no tipo imagem
 function loadFile(event, idCanvas, isBackground) {
@@ -18,7 +19,7 @@ function loadFile(event, idCanvas, isBackground) {
         imagebg.width = imagefg.width;
         imagebg.height = imagefg.height;
       }
-      loadOnCanvas(idCanvas, isBackground);
+      loadOnCanvas(idCanvas, imagebg);
     };
   }else{
     imagefg = new Image();
@@ -28,31 +29,23 @@ function loadFile(event, idCanvas, isBackground) {
         imagefg.width = imagebg.width;
         imagefg.height = imagebg.height;
       }
-      loadOnCanvas(idCanvas, isBackground);
+      loadOnCanvas(idCanvas, imagefg);
     };    
   }
 }
 
 //funcao para carregamento da imagem no canvas
-function loadOnCanvas(idCanvas, isBackground){
-  //alerta para "recarregar" a imagem
-  alert("Uploaded image");
+function loadOnCanvas(idCanvas, image){
   //canvas
   var canvas = document.getElementById(idCanvas);
   var ctx;
   //dim canvas = dim img
-  if(isBackground){
-    canvas.width  = imagebg.width;
-    canvas.height = imagebg.height;
-    ctx = canvas.getContext("2d");
-    ctx.clearRect(0,0,canvas.width, canvas.height);
-    ctx.drawImage(imagebg, 0, 0, canvas.width, canvas.height);
-  }else{
-    canvas.width  = imagefg.width;
-    canvas.height = imagefg.height;
-    ctx = canvas.getContext("2d");
-    ctx.clearRect(0,0,canvas.width, canvas.height);
-    ctx.drawImage(imagefg, 0, 0, canvas.width, canvas.height);
+  canvas.width  = image.width;
+  canvas.height = image.height;
+  ctx = canvas.getContext("2d");
+  if(ctx){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
   }
 }
 
@@ -68,6 +61,28 @@ function clearCanvas(idCanvas, isBackground, idInputfile){
   }
 }
 
+//funcao para substituir pixels verdes do foreground pelos pixels do background
+function replaceGreenPixels(bg, fg){
+  //iterando sobre pixels dos canvases
+  var i;
+  for(i=0; i<fg.data.length; i+=4){
+    var RB = fg.data[i+0] + fg.data[i+2];
+    var G = fg.data[i+1];
+    var diff = RB - G;
+    if(diff < 0){
+      diff = 0;
+    }
+    //altera pixels em fg
+    if((G>=100 && G>RB) || (G>=200 && diff<50)){
+      var j;
+      for(j=0; j<4; j++){
+        fg.data[i+j] = bg.data[i+j];
+      }
+    }      
+  }
+  return fg;
+}
+
 //funcao para fazer o resultado
 function result(idCanvas1, idCanvas2, idCanvRes){
   //se as imagens foram carregadas
@@ -76,34 +91,23 @@ function result(idCanvas1, idCanvas2, idCanvRes){
     var canvFG = document.getElementById(idCanvas1);
     ctxFG = canvFG.getContext('2d');
     var canvBG = document.getElementById(idCanvas2);
-    ctxBG = canvBG.getContext('2d');    
+    ctxBG = canvBG.getContext('2d');  
     //imageData dos canvases para acessar pixels
-    var fg = ctxFG.getImageData(0,0,canvFG.width, canvFG.height);
-    var bg = ctxBG.getImageData(0,0,canvBG.width, canvBG.height);    
-    //iterando sobre pixels dos canvases
-    var i;
-    sum = 0;
-    for(i=0; i<fg.data.length; i+=4){
-      var RB = fg.data[i+0] + fg.data[i+2];
-      var G = fg.data[i+1];
-      var diff = RB - G;
-      if(diff < 0){
-        diff = 0;
+    if(ctxFG && ctxBG){
+      var fg = ctxFG.getImageData(0, 0, canvFG.width, canvFG.height);
+      var bg = ctxBG.getImageData(0, 0, canvBG.width, canvBG.height);    
+      //replacing green pixels
+      fg = replaceGreenPixels(bg, fg);
+      //coloca fg (modificado) em canvRes
+      var canvRes = document.getElementById(idCanvRes);
+      canvRes.width = canvFG.width;
+      canvRes.height = canvFG.height;
+      var ctxRes = canvRes.getContext('2d');
+      if(ctxRes){
+        ctxRes.putImageData(fg, 0, 0);
+        hasResultImg = true;
       }
-      //altera pixels em fg
-      if((G>=100 && G>RB) || (G>=200 && diff<50)){
-        var j;
-        for(j=0; j<4; j++){
-          fg.data[i+j] = bg.data[i+j];
-        }
-      }      
-    }
-    //coloca fg (modificado) em canvRes
-    var canvRes = document.getElementById(idCanvRes);
-    canvRes.width = canvFG.width;
-    canvRes.height = canvFG.height;
-    var ctxRes = canvRes.getContext('2d');
-    ctxRes.putImageData(fg, 0, 0);    
+    }       
   }else{
     alert("Upload your foreground and background images above");
   }
@@ -113,11 +117,16 @@ function result(idCanvas1, idCanvas2, idCanvRes){
 function clearOne(idCanv){
   var canvas = document.getElementById(idCanv);
   var ctx = canvas.getContext("2d");
-  ctx.clearRect(0,0,canvas.width, canvas.height);
-  canvas.width = 400;
-  canvas.height = 200;
-  ctx.fillStyle = "#333333";
-  ctx.fillRect(0,0,canvas.width, canvas.height);
+  if(ctx){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = 400;
+    canvas.height = 200;
+    ctx.fillStyle = "#333333";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  if(idCanv=="canvRes"){
+    hasResultImg = false;
+  }
 }
 
 //funcao para inicializar os canvases
@@ -125,6 +134,20 @@ function clearAll(){
   clearOne(canv1);
   clearOne(canv2);
   clearOne(canvRes);
+}
+
+//funcao ativada pelo download button
+function downloadImage(){
+  if(hasResultImg){
+    var canv = document.getElementById(canvRes);
+    var img = canv.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    var link = document.createElement('a');
+    link.download = "image.png";
+    link.href = img;
+    link.click();
+  }else{
+    alert("No image available");
+  }
 }
 
 /*function download(idCanvRes){
